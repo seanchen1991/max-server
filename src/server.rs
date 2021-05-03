@@ -1,7 +1,7 @@
+use super::*;
+
 use rocket::State;
 use rocket_contrib::json::{Json, JsonValue};
-
-use super::*;
 
 /// Handles POST requests to the "/" route with a `Request` payload.
 #[post("/", format = "json", data = "<request>")]
@@ -33,14 +33,13 @@ fn generate_response(req: Request, map: State<ComputeMap>) -> JsonValue {
                 right,
             };
 
-            compute_map.insert(id, compute_state);
-
             // handle case when list is of length 1
             if left == right {
                 done_response(0)
             } else {
                 // send the first "compare" response with the initial
                 // set of indices
+                compute_map.insert(id, compute_state);
                 compare_response(left, right, id)
             }
         }
@@ -55,11 +54,10 @@ fn generate_response(req: Request, map: State<ComputeMap>) -> JsonValue {
                 right,
             };
 
-            compute_map.insert(id, compute_state);
-
             if left == right {
                 done_response(0)
             } else {
+                compute_map.insert(id, compute_state);
                 compare_response(left, right, id)
             }
         }
@@ -67,48 +65,49 @@ fn generate_response(req: Request, map: State<ComputeMap>) -> JsonValue {
             let id = req.request_id.unwrap();
             let answer = req.answer.unwrap();
 
-            // check to ensure that the comparison operation exists
+            // check to ensure that the comparison operation is a
+            // pre-existing one
             match compute_map.get_mut(&id) {
-                Some(compute_map) => {
-                    match compute_map.op {
+                Some(compute_state) => {
+                    match compute_state.op {
                         OpType::Max => {
                             if answer {
                                 // increment the left index
-                                compute_map.left += 1;
+                                compute_state.left += 1;
                             } else {
                                 // decrement the right index
-                                compute_map.right -= 1;
+                                compute_state.right -= 1;
                             }
 
                             // check if the computation has reached the end of the list
                             // otherwise, continue the computation by sending a "compare"
                             // response with the next set of indices
-                            if compute_map.left == compute_map.right {
-                                done_response(compute_map.left)
+                            if compute_state.left == compute_state.right {
+                                done_response(compute_state.left)
                             } else {
-                                compare_response(compute_map.left, compute_map.right, id)
+                                compare_response(compute_state.left, compute_state.right, id)
                             }
                         }
                         OpType::Min => {
                             if answer {
                                 // decrement the right index
-                                compute_map.right -= 1;
+                                compute_state.right -= 1;
                             } else {
                                 // increment the left index
-                                compute_map.left += 1;
+                                compute_state.left += 1;
                             }
 
-                            if compute_map.left == compute_map.right {
-                                done_response(compute_map.left)
+                            if compute_state.left == compute_state.right {
+                                done_response(compute_state.left)
                             } else {
-                                compare_response(compute_map.left, compute_map.right, id)
+                                compare_response(compute_state.left, compute_state.right, id)
                             }
                         }
                     }
                 }
                 None => json!({
                     "status": "error",
-                    "reason": "Attempted to fetch a non-existent comparison operation.",
+                    "reason": "Attempted to fetch a non-existent comparison computation.",
                 }),
             }
         }
@@ -119,7 +118,7 @@ fn generate_response(req: Request, map: State<ComputeMap>) -> JsonValue {
     }
 }
 
-/// Starts up the Rocket runtime, registering the POST route
+/// Starts up the Rocket server, registering the POST route
 /// as well as the `ComputeState` hashmap.
 pub fn rocket() -> rocket::Rocket {
     rocket::ignite()
