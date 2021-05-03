@@ -61,15 +61,20 @@ enum Response {
     Done {
         ty: String,
         result: usize,
-    },
+    }
 }
 
 #[post("/", format = "json", data = "<message>")]
 fn handle_post(message: Json<Request>, map: State<ComputeMap>) -> JsonValue {
-    let mut compute_map = map.lock().expect("Map lock");
     let req = message.0;
 
     println!("{:?}", req);
+
+    generate_response(req, map)
+}
+
+fn generate_response(req: Request, map: State<ComputeMap>) -> JsonValue {
+    let mut compute_map = map.lock().expect("Map lock");
 
     match req.ty.as_str() {
         "compute_max" => {
@@ -89,10 +94,18 @@ fn handle_post(message: Json<Request>, map: State<ComputeMap>) -> JsonValue {
 
             // handle case when list is of length 1
             if left == right {
+                // Json(DoneResponse { ty: String::from("done"), result: 0 })
+
                 json!({ "ty": "done", "result": 0 })
             } else {
                 // send the first "compare" response with the initial
                 // set of indices
+                // Json(Response::Compare {
+                //     left,
+                //     right,
+                //     request_id: id,
+                // })
+
                 json!({
                     "ty": "compare",
                     "left": left,
