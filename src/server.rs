@@ -47,16 +47,18 @@ fn handle_post(request: Json<Request>, map: State<ComputeMap>) -> JsonValue {
 }
 
 /// Generates a JSON response according to the type of `Request`.
-/// Receives a `Request` as well as a hashmap which stores the 
+/// Receives a `Request` as well as a hashmap which stores the
 /// states of any in-progress comparison operations.
 fn generate_response(req: Request, map: State<ComputeMap>) -> JsonValue {
     let done_response = |result: usize| json!({"ty": "done", "result": result});
-    let compare_response = |left: usize, right: usize, id: u32| json!({
-        "ty": "compare",
-        "left": left,
-        "right": right,
-        "request_id": id,
-    });
+    let compare_response = |left: usize, right: usize, id: u32| {
+        json!({
+            "ty": "compare",
+            "left": left,
+            "right": right,
+            "request_id": id,
+        })
+    };
 
     let mut compute_map = map.lock().expect("Map lock");
 
@@ -160,7 +162,7 @@ fn generate_response(req: Request, map: State<ComputeMap>) -> JsonValue {
     }
 }
 
-/// Starts up the Rocket runtime, registering the POST route 
+/// Starts up the Rocket runtime, registering the POST route
 /// as well as the `ComputeState` hashmap.
 pub fn rocket() -> rocket::Rocket {
     rocket::ignite()
