@@ -50,20 +50,6 @@ struct Request {
     answer: Option<bool>,
 }
 
-#[derive(Serialize, Deserialize)]
-enum Response {
-    Compare {
-        ty: String,
-        left: usize,
-        right: usize,
-        request_id: u32,
-    },
-    Done {
-        ty: String,
-        result: usize,
-    }
-}
-
 #[post("/", format = "json", data = "<message>")]
 fn handle_post(message: Json<Request>, map: State<ComputeMap>) -> JsonValue {
     let req = message.0;
@@ -74,6 +60,14 @@ fn handle_post(message: Json<Request>, map: State<ComputeMap>) -> JsonValue {
 }
 
 fn generate_response(req: Request, map: State<ComputeMap>) -> JsonValue {
+    let done_response = |result: usize| json!({"ty": "done", "result": result});
+    let compare_response = |left: usize, right: usize, id: u32| json!({
+        "ty": "compare",
+        "left": left,
+        "right": right,
+        "request_id": id,
+    });
+
     let mut compute_map = map.lock().expect("Map lock");
 
     match req.ty.as_str() {
@@ -94,24 +88,11 @@ fn generate_response(req: Request, map: State<ComputeMap>) -> JsonValue {
 
             // handle case when list is of length 1
             if left == right {
-                // Json(DoneResponse { ty: String::from("done"), result: 0 })
-
-                json!({ "ty": "done", "result": 0 })
+                done_response(0)
             } else {
                 // send the first "compare" response with the initial
                 // set of indices
-                // Json(Response::Compare {
-                //     left,
-                //     right,
-                //     request_id: id,
-                // })
-
-                json!({
-                    "ty": "compare",
-                    "left": left,
-                    "right": right,
-                    "request_id": id,
-                })
+                compare_response(left, right, id)
             }
         }
         "compute_min" => {
@@ -128,14 +109,9 @@ fn generate_response(req: Request, map: State<ComputeMap>) -> JsonValue {
             compute_map.insert(id, compute_state);
 
             if left == right {
-                json!({ "ty": "done", "result": 0 })
+                done_response(0)
             } else {
-                json!({
-                    "ty": "compare",
-                    "left": left,
-                    "right": right,
-                    "request_id": id,
-                })
+                compare_response(left, right, id)
             }
         }
         "comp_result" => {
@@ -159,14 +135,9 @@ fn generate_response(req: Request, map: State<ComputeMap>) -> JsonValue {
                             // otherwise, continue the computation by sending a "compare"
                             // response with the next set of indices
                             if compute_map.left == compute_map.right {
-                                json!({ "ty": "done", "result": compute_map.left })
+                                done_response(compute_map.left)
                             } else {
-                                json!({
-                                    "ty": "compare",
-                                    "left": compute_map.left,
-                                    "right": compute_map.right,
-                                    "request_id": id,
-                                })
+                                compare_response(compute_map.left, compute_map.right, id)
                             }
                         }
                         OpType::Min => {
@@ -179,27 +150,23 @@ fn generate_response(req: Request, map: State<ComputeMap>) -> JsonValue {
                             }
 
                             if compute_map.left == compute_map.right {
-                                json!({ "ty": "done", "result": compute_map.left })
+                                done_response(compute_map.left)
                             } else {
-                                json!({
-                                    "ty": "compare",
-                                    "left": compute_map.left,
-                                    "right": compute_map.right,
-                                    "request_id": id,
-                                })
+                                compare_response(compute_map.left, compute_map.right, id)
                             }
                         }
                     }
                 }
                 None => json!({
                     "status": "error",
-                    "reason": "Attempted to fetch a non-existent comparison operation."
+                    "reason": "Attempted to fetch a non-existent comparison operation.",
                 }),
             }
         }
-        _ => {
-            json!({ "status": "error", "reason": "Unrecognized request type." })
-        }
+        _ => json!({
+            "status": "error",
+            "reason": "Unrecognized request type.",
+        }),
     }
 }
 
