@@ -85,3 +85,7 @@ if __name__ == "__main__":
     client = Client(args.address, log=True)
     assert 3 == client.compute([1, 2, 3, 1], op="max")
     assert 1 == client.compute([1, 2, 3, 1], op="min")
+
+    # Additional tests
+    assert 100 == client.compute([100], op="max")
+    assert -101 == client.compute([5, -100, 9, 14, -101, -99], op="min")
