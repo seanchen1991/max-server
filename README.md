@@ -23,3 +23,4 @@ Notable changes made to `client.py`:
 This implementation is currently missing, among other things:
  - Unit tests
  - Proper error handling
+ - Asynchronous sending and receiving of requests and responses

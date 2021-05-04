@@ -5,7 +5,7 @@ use rocket_contrib::json::{Json, JsonValue};
 
 /// Handles POST requests to the "/" route with a `Request` payload.
 #[post("/", format = "json", data = "<request>")]
-fn handle_post(request: Json<Request>, map: State<ComputeMap>) -> JsonValue {
+fn handle_post(request: Json<Request>, map: State<Mutex<ComputeMap>>) -> JsonValue {
     let req = request.0;
 
     println!("{:?}", req);
@@ -16,14 +16,14 @@ fn handle_post(request: Json<Request>, map: State<ComputeMap>) -> JsonValue {
 /// Generates a JSON response according to the type of `Request`.
 /// Receives a `Request` as well as a hashmap which stores the
 /// states of any in-progress comparison operations.
-fn generate_response(req: Request, map: State<ComputeMap>) -> JsonValue {
+fn generate_response(req: Request, map: State<Mutex<ComputeMap>>) -> JsonValue {
     let mut compute_map = map.lock().expect("Map lock");
 
     match req.ty.as_str() {
         "compute_max" => {
             // initialize a new `ComputeState` to keep track of
             // the computation and insert it into `ComputeMap`
-            let id = compute_map.len() as u32 + 1;
+            let id = compute_map.uid + 1;
             let left = 0;
             let right = req.length.unwrap() - 1;
 
@@ -39,12 +39,13 @@ fn generate_response(req: Request, map: State<ComputeMap>) -> JsonValue {
             } else {
                 // send the first "compare" response with the initial
                 // set of indices
-                compute_map.insert(id, compute_state);
+                compute_map.mapping.insert(id, compute_state);
+                compute_map.uid = id;
                 compare_response(left, right, id)
             }
         }
         "compute_min" => {
-            let id = compute_map.len() as u32 + 1;
+            let id = compute_map.uid + 1;
             let left = 0;
             let right = req.length.unwrap() - 1;
 
@@ -57,7 +58,8 @@ fn generate_response(req: Request, map: State<ComputeMap>) -> JsonValue {
             if left == right {
                 done_response(0)
             } else {
-                compute_map.insert(id, compute_state);
+                compute_map.mapping.insert(id, compute_state);
+                compute_map.uid = id;
                 compare_response(left, right, id)
             }
         }
@@ -67,7 +69,7 @@ fn generate_response(req: Request, map: State<ComputeMap>) -> JsonValue {
 
             // check to ensure that the comparison operation is a
             // pre-existing one
-            match compute_map.get_mut(&id) {
+            match compute_map.mapping.get_mut(&id) {
                 Some(compute_state) => {
                     match compute_state.op {
                         OpType::Max => {
@@ -123,5 +125,12 @@ fn generate_response(req: Request, map: State<ComputeMap>) -> JsonValue {
 pub fn rocket() -> rocket::Rocket {
     rocket::ignite()
         .mount("/", routes![handle_post])
-        .manage(Mutex::new(HashMap::<u32, ComputeState>::new()))
+        .manage(
+            Mutex::new(
+                ComputeMap {
+                    uid: 0,
+                    mapping: HashMap::<u32, ComputeState>::new(),
+                }
+            )
+        )
 }

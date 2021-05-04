@@ -16,7 +16,12 @@ use rocket_contrib::json::JsonValue;
 
 /// A global map that stores all of the `ComputeState`s for
 /// each comparison computation.
-pub type ComputeMap = Mutex<HashMap<u32, ComputeState>>;
+pub struct ComputeMap {
+    /// A monotonically-increasing counter for assigning new request IDs.
+    uid: u32,
+    /// HashMap mapping request IDs to `ComputeState` instances.
+    mapping: HashMap<u32, ComputeState>,
+}
 
 /// The types of operations that the server should be able
 /// to handle.
