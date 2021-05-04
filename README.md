@@ -15,7 +15,7 @@ When the server receives a `comp_result` request with the result of comparing tw
 ## Changes Made to the Client
 
 Notable changes made to `client.py`: 
- - Each "type" field on each message has been renamed to "ty" (since "type" is a keyword in Rust).
+ - The "type" field on each message has been renamed to "ty" (since "type" is a keyword in Rust).
  - A few more assertions have been added to test additional edge cases.
 
 ## Missing Features
