@@ -1,7 +1,5 @@
 #![feature(proc_macro_hygiene, decl_macro)]
 
-pub mod server;
-
 #[macro_use]
 extern crate rocket;
 #[macro_use]
@@ -13,6 +11,8 @@ use std::collections::HashMap;
 use std::sync::Mutex;
 
 use rocket_contrib::json::JsonValue;
+
+pub mod server;
 
 /// A global map that stores all of the `ComputeState`s for
 /// each comparison computation.
