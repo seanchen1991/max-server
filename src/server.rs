@@ -125,4 +125,3 @@ pub fn rocket() -> rocket::Rocket {
         .mount("/", routes![handle_post])
         .manage(Mutex::new(HashMap::<u32, ComputeState>::new()))
 }
-

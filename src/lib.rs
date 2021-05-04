@@ -18,7 +18,7 @@ use rocket_contrib::json::JsonValue;
 /// each comparison computation.
 pub type ComputeMap = Mutex<HashMap<u32, ComputeState>>;
 
-/// The types of operations that the server should be able 
+/// The types of operations that the server should be able
 /// to handle.
 #[derive(Debug)]
 pub enum OpType {
@@ -58,7 +58,7 @@ pub fn done_response(result: usize) -> JsonValue {
     json!({ "ty": "done", "result": result })
 }
 
-/// Constructs a "compare" JSON Response from `left`, `right`, and `id` 
+/// Constructs a "compare" JSON Response from `left`, `right`, and `id`
 /// parameters.
 pub fn compare_response(left: usize, right: usize, id: u32) -> JsonValue {
     json!({
@@ -68,4 +68,3 @@ pub fn compare_response(left: usize, right: usize, id: u32) -> JsonValue {
         "request_id": id,
     })
 }
-
