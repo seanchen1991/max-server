@@ -44,7 +44,7 @@ def message_to_struct(message):
 
 class Client:
     def __init__(self, address, log=False):
-        self.address = address if address else "http://localhost:8000"
+        self.address = address if address else "http://localhost:5000"
         self.log = log
 
     def send(self, data):
