@@ -18,16 +18,16 @@ fn handle_post(request: Json<Request>, map: State<Mutex<ComputeMap>>) -> JsonVal
 /// states of any in-progress comparison operations.
 fn generate_response(req: Request, map: State<Mutex<ComputeMap>>) -> JsonValue {
     let mut compute_map = map.lock().expect("Map lock");
-    let req_str = req.ty.as_str();
+    let ty_str = req.ty.as_str();
 
-    match req_str {
+    match ty_str {
         "compute_max" | "compute_min" => {
             // initialize a new `ComputeState` to keep track of
             // the computation and insert it into `ComputeMap`
             let id = compute_map.uid + 1;
             let left = 0;
             let right = req.length.unwrap() - 1;
-            let op = if req_str == "compute_max" {
+            let op = if ty_str == "compute_max" {
                 OpType::Max
             } else {
                 OpType::Min
