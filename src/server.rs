@@ -57,19 +57,15 @@ fn generate_response(req: Request, map: State<Mutex<ComputeMap>>) -> JsonValue {
                     match compute_state.op {
                         OpType::Max => {
                             if answer {
-                                // increment the left index
                                 compute_state.left += 1;
                             } else {
-                                // decrement the right index
                                 compute_state.right -= 1;
                             }
                         }
                         OpType::Min => {
                             if answer {
-                                // decrement the right index
                                 compute_state.right -= 1;
                             } else {
-                                // increment the left index
                                 compute_state.left += 1;
                             }
                         }
