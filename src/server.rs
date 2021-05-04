@@ -63,15 +63,6 @@ fn generate_response(req: Request, map: State<Mutex<ComputeMap>>) -> JsonValue {
                                 // decrement the right index
                                 compute_state.right -= 1;
                             }
-
-                            // check if the computation has reached the end of the list
-                            // otherwise, continue the computation by sending a "compare"
-                            // response with the next set of indices
-                            if compute_state.left == compute_state.right {
-                                done_response(compute_state.left)
-                            } else {
-                                compare_response(compute_state.left, compute_state.right, id)
-                            }
                         }
                         OpType::Min => {
                             if answer {
@@ -81,13 +72,16 @@ fn generate_response(req: Request, map: State<Mutex<ComputeMap>>) -> JsonValue {
                                 // increment the left index
                                 compute_state.left += 1;
                             }
-
-                            if compute_state.left == compute_state.right {
-                                done_response(compute_state.left)
-                            } else {
-                                compare_response(compute_state.left, compute_state.right, id)
-                            }
                         }
+                    }
+
+                    // check if the computation has reached the end of the list
+                    // otherwise, continue the computation by sending a "compare"
+                    // response with the next set of indices
+                    if compute_state.left == compute_state.right {
+                        done_response(compute_state.left)
+                    } else {
+                        compare_response(compute_state.left, compute_state.right, id)
                     }
                 }
                 None => json!({
