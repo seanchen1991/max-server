@@ -27,13 +27,13 @@ fn generate_response(req: Request, map: State<Mutex<ComputeMap>>) -> JsonValue {
             let id = compute_map.uid + 1;
             let left = 0;
             let right = req.length.unwrap() - 1;
-            let op = if req_str == "compute_max" { OpType::Max } else { OpType::Min };
-
-            let compute_state = ComputeState {
-                op,
-                left,
-                right,
+            let op = if req_str == "compute_max" {
+                OpType::Max
+            } else {
+                OpType::Min
             };
+
+            let compute_state = ComputeState { op, left, right };
 
             // handle case when list is of length 1
             if left == right {
@@ -45,7 +45,6 @@ fn generate_response(req: Request, map: State<Mutex<ComputeMap>>) -> JsonValue {
                 compute_map.uid = id;
                 compare_response(left, right, id)
             }
-
         }
         "comp_result" => {
             let id = req.request_id.unwrap();
@@ -109,12 +108,8 @@ fn generate_response(req: Request, map: State<Mutex<ComputeMap>>) -> JsonValue {
 pub fn rocket() -> rocket::Rocket {
     rocket::ignite()
         .mount("/", routes![handle_post])
-        .manage(
-            Mutex::new(
-                ComputeMap {
-                    uid: 0,
-                    mapping: HashMap::<u32, ComputeState>::new(),
-                }
-            )
-        )
+        .manage(Mutex::new(ComputeMap {
+            uid: 0,
+            mapping: HashMap::<u32, ComputeState>::new(),
+        }))
 }
