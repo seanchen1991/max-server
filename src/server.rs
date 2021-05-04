@@ -71,7 +71,7 @@ fn generate_response(req: Request, map: State<Mutex<ComputeMap>>) -> JsonValue {
                         }
                     }
 
-                    // check if the computation has reached the end of the list
+                    // check if the computation has completed
                     // otherwise, continue the computation by sending a "compare"
                     // response with the next set of indices
                     if compute_state.left == compute_state.right {
