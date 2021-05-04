@@ -65,7 +65,7 @@ pub fn done_response(result: usize) -> JsonValue {
 
 /// Constructs a "compare" JSON Response from `left`, `right`, and `id`
 /// parameters.
-pub fn compare_response(left: usize, right: usize, id: u32) -> JsonValue {
+pub fn compare_response(id: u32, left: usize, right: usize) -> JsonValue {
     json!({
         "ty": "compare",
         "left": left,

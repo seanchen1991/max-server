@@ -43,7 +43,7 @@ fn generate_response(req: Request, map: State<Mutex<ComputeMap>>) -> JsonValue {
                 // set of indices
                 compute_map.mapping.insert(id, compute_state);
                 compute_map.uid = id;
-                compare_response(left, right, id)
+                compare_response(id, left, right)
             }
         }
         "comp_result" => {
@@ -77,7 +77,7 @@ fn generate_response(req: Request, map: State<Mutex<ComputeMap>>) -> JsonValue {
                     if compute_state.left == compute_state.right {
                         done_response(compute_state.left)
                     } else {
-                        compare_response(compute_state.left, compute_state.right, id)
+                        compare_response(id, compute_state.left, compute_state.right)
                     }
                 }
                 None => json!({
